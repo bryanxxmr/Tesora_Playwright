@@ -1,0 +1,10 @@
+[
+    {
+        "id": "visiblePayments",
+        "name": "Pagos visibles"
+    },
+    {
+        "id": "hiddenPayments",
+        "name": "Pagos ocultos"
+    }
+]

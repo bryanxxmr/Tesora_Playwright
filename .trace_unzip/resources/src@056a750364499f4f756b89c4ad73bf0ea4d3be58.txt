@@ -1,0 +1,79 @@
+import { Page, expect } from "@playwright/test";
+
+export class ModConciliation {
+  constructor(private page: Page) {}
+
+  async navigateToConciliationPage() {
+    await this.page.goto('https://app-cert.tesorabcp.com/admin/conciliations');
+  }
+
+  async esperaCargaInicial() {
+    // Espera la URL de conciliaciones y un encabezado/texto visible que indique que la página cargó.
+    // Usamos timeouts más altos y selectores flexibles para ser más resistentes a cambios menores en el DOM.
+    await this.page.waitForURL(/admin\/conciliations/, { timeout: 15000 }).catch(() => {});
+
+    // Selector flexible: busca .header__title ó h1 ó cualquier elemento con el texto "Conciliaciones"
+    const header = this.page.locator('.header__title, h1, [role="heading"]');
+    await header.first().waitFor({ state: 'visible', timeout: 15000 });
+
+    // Asegurarnos que el texto esperado esté presente (timeout extendido).
+    await expect(this.page.locator('text=Conciliaciones')).toBeVisible({ timeout: 15000 });
+  }
+
+  async buscarOperacion() {
+    // Rellena el filtro y espera hasta que aparezca algún resultado que contenga el texto buscado.
+    await this.page.fill('#search-filter-control', '13664');
+    // Si la aplicación requiere un Enter para aplicar la búsqueda, lo presionamos (no rompe si no es necesario).
+    try { await this.page.press('#search-filter-control', 'Enter'); } catch { }
+    await this.page.locator('text=13664').first().waitFor({ timeout: 15000 });
+  }
+
+  async marcarCheckOperacion() {
+    // Busca la fila resultante que contiene el texto de la operación y hace click en el primer enlace encontrado.
+    const row = this.page.locator('tr', { hasText: '13664' }).first();
+    await row.waitFor({ state: 'visible', timeout: 10000 });
+    const link = row.locator('a').first();
+    await link.waitFor({ state: 'visible', timeout: 10000 });
+    await link.click();
+  }
+
+  async buscarComprobante() {
+    await this.page.fill('#electronic-receipts-searcher-control', 'FFF1-0000022');
+    try { await this.page.press('#electronic-receipts-searcher-control', 'Enter'); } catch { }
+    await this.page.locator('text=FFF1-0000022').first().waitFor({ timeout: 15000 });
+  }
+
+  async marcarComprobante() {
+    // Intenta localizar la fila del comprobante y marcar el checkbox de forma resiliente.
+    const receiptRow = this.page.locator('tr', { hasText: 'FFF1-0000022' }).first();
+    await receiptRow.waitFor({ state: 'visible', timeout: 15000 });
+
+    // Primero intentamos un checkbox tipo <input>. Si no existe, fallback a un click en el control visual.
+    const checkboxInput = receiptRow.locator('input[type="checkbox"]').first();
+    if (await checkboxInput.count() > 0) {
+      await checkboxInput.check();
+      return;
+    }
+
+    // Fallback: buscar elementos con role checkbox o componentes de p-tablecheckbox y clickear el primero que aparezca
+    const visualCheckbox = receiptRow.locator('[role="checkbox"]').first();
+    if (await visualCheckbox.count() > 0) {
+      await visualCheckbox.click();
+      return;
+    }
+
+    // Último recurso: clicar en el primer .p-tablecheckbox dentro de la fila
+    const pCheckbox = receiptRow.locator('p-tablecheckbox, .p-tablecheckbox, [class*="checkbox"]').first();
+    await pCheckbox.click();
+  }
+
+  async botonConciliar() {
+    await this.page.getByRole('button', { name: 'Conciliar' }).click();
+  }
+
+  async validaConciliacion() {
+    await expect(this.page.getByText('Guardando conciliación')).toBeVisible({ timeout: 15000 });
+    // Verifica que el mensaje de éxito aparece al final
+    await expect(this.page.getByText('¡Con éxito!')).toBeVisible({ timeout: 15000 });
+  }
+}

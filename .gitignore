@@ -1,0 +1,18 @@
+node_modules/
+playwright-report/
+test-results/
+trace/
+.idea/
+.vscode/
+dist/
+coverage/
+*.log
+npm-debug.log*
+.DS_Store
+credencial.json
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
