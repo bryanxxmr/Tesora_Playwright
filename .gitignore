@@ -10,6 +10,8 @@ coverage/
 npm-debug.log*
 .DS_Store
 credencial.json
+# Excluir trazas generadas por Playwright (.trace export)
+.trace_unzip/
 # Playwright
 node_modules/
 /test-results/
