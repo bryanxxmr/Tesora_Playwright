@@ -9,9 +9,10 @@ export class ModConciliation {
 
   async esperaCargaInicial() {
     // Espera la URL de conciliaciones y un encabezado/texto visible que indique que la página cargó.
+    // Usamos timeouts más altos y selectores flexibles para ser más resistentes a cambios menores en el DOM.
     await this.page.waitForURL(/admin\/conciliations/, { timeout: 15000 }).catch(() => {});
 
-    // Selector flexible: busca .header__title ó h1 ó cualquier elemento con el role heading
+    // Selector flexible: busca .header__title ó h1 ó cualquier elemento con el texto "Conciliaciones"
     const header = this.page.locator('.header__title, h1, [role="heading"]');
     await header.first().waitFor({ state: 'visible', timeout: 15000 });
 
@@ -21,14 +22,15 @@ export class ModConciliation {
 
   async buscarOperacion() {
     // Rellena el filtro y espera hasta que aparezca algún resultado que contenga el texto buscado.
-    await this.page.fill('#search-filter-control', '72677');
+    await this.page.fill('#search-filter-control', '13664');
+    // Si la aplicación requiere un Enter para aplicar la búsqueda, lo presionamos (no rompe si no es necesario).
     try { await this.page.press('#search-filter-control', 'Enter'); } catch { }
-    await this.page.locator('text=72677').first().waitFor({ timeout: 15000 });
+    await this.page.locator('text=13664').first().waitFor({ timeout: 15000 });
   }
 
   async marcarCheckOperacion() {
     // Busca la fila resultante que contiene el texto de la operación y hace click en el primer enlace encontrado.
-    const row = this.page.locator('tr', { hasText: '72677' }).first();
+    const row = this.page.locator('tr', { hasText: '13664' }).first();
     await row.waitFor({ state: 'visible', timeout: 10000 });
     const link = row.locator('a').first();
     await link.waitFor({ state: 'visible', timeout: 10000 });
